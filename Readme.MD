@@ -1,29 +1,39 @@
 # InfraGuard
 
-InfraGuard is a lightweight AWS security scanner that detects common misconfigurations across services like EC2, S3, ELB, and NACL.
-
-It scans your infrastructure periodically and sends alerts to Slack or Telegram for high-risk issues.
+InfraGuard is a AWS security scanner that checks for common misconfigurations and sends alerts via Telegram and Slack.
 
 ---
 
 ## Features
 
-- Multi-region AWS scanning
-- Detects:
-  - Public S3 buckets
-  - Open security groups (SSH/RDP/ports)
-  - Risky NACL rules
-  - Internet-facing load balancers with open access
+- Scans AWS across regions
+
+- Checks:
+  - S3 public access
+  - EC2 open ports (SSH/RDP)
+  - NACL rules
+  - Load balancer exposure
+  - IAM issues (admin roles, MFA)
+  - RDS security
+  - CloudTrail status
 
 - Severity-based alerts (CRITICAL, HIGH, etc.)
+
 - Telegram / Slack notifications
+
 - Configurable scan interval
+
+---
+
+## Demo
+
+![Telegram Alerts](docs/img/telegram.jpeg)
 
 ---
 
 ## Setup
 
-### 1. Clone and install
+### 1. Clone
 
 ```bash
 git clone https://github.com/RutvikMendpara/InfraGuard.git
@@ -33,26 +43,28 @@ pip install -r requirements.txt
 
 ---
 
-### 2. Configure environment
-
-Copy example file:
+### 2. Configure
 
 ```bash
 cp .env.example .env
 ```
 
----
+## Fill in your values in `.env`
 
 ### 3. AWS setup
 
-Create an IAM user with **read-only access**:
+Create an IAM user with read-only access.
 
-- Go to AWS IAM -> Users -> Create User
-- Attach policy: `ReadOnlyAccess`
-- Generate access keys
-- Use those keys in `.env`
+Attach these policies:
 
----
+- AmazonEC2ReadOnlyAccess
+- AmazonRDSReadOnlyAccess
+- AmazonS3ReadOnlyAccess
+- AmazonVPCReadOnlyAccess
+- AWSCloudTrail_ReadOnlyAccess
+- IAMReadOnlyAccess
+
+## Then generate access keys and add them to `.env`.
 
 ## Run
 
@@ -62,10 +74,7 @@ python main.py
 
 ---
 
-## Notes
+## License
 
-- Alerts are sent only for selected severities (`ALERT_SEVERITIES`)
-- Default scan interval: 1 hour
-- Designed for small to medium AWS accounts
-
----
+GNU GENERAL PUBLIC LICENSE Version 3
+[License](License)

@@ -1,7 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 
-from app.services import ec2, s3, nacl, elb
+from app.services import ec2, s3, nacl, elb, iam, rds, cloudtrail
 from app.utils import get_all_regions, filter_by_severity, print_summary
 from app.notifier import notify
 from app import settings
@@ -10,14 +10,16 @@ from app.logger import logger
 
 def run_scan():
     all_findings = []
+    logger.info("Scanning S3")
+    all_findings.extend(s3.scan())
 
-    logger.info("Starting S3 scan")
-    s3_findings = s3.scan()
-    logger.info(f"S3 findings: {len(s3_findings)}")
-    all_findings.extend(s3_findings)
+    logger.info("Scanning IAM")
+    all_findings.extend(iam.scan())
+
+    logger.info("Scanning CloudTrail")
+    all_findings.extend(cloudtrail.scan())
 
     regions = get_all_regions()
-    logger.info(f"Scanning regions: {regions}")
 
     with ThreadPoolExecutor(max_workers=settings.MAX_WORKERS) as executor:
         futures = {
@@ -26,13 +28,10 @@ def run_scan():
         }
 
         for future in as_completed(futures):
-            region = futures[future]
             try:
-                region_findings = future.result()
-                logger.info(f"{region}: {len(region_findings)} findings")
-                all_findings.extend(region_findings)
+                all_findings.extend(future.result())
             except Exception as e:
-                logger.error(f"{region} failed: {e}")
+                logger.error(f"Region failed: {e}")
 
     return all_findings
 
@@ -44,7 +43,7 @@ def scan_region(region):
     findings.extend(ec2.scan(region))
     findings.extend(nacl.scan(region))
     findings.extend(elb.scan(region))
-
+    findings.extend(rds.scan(region))
     return findings
 
 
