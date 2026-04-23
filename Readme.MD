@@ -63,8 +63,7 @@ Attach these policies:
 - AmazonVPCReadOnlyAccess
 - AWSCloudTrail_ReadOnlyAccess
 - IAMReadOnlyAccess
-
-## Then generate access keys and add them to `.env`.
+  Then generate access keys and add them to `.env`.
 
 ## Run
 
