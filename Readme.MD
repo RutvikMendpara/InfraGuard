@@ -77,4 +77,4 @@ python main.py
 ## License
 
 GNU GENERAL PUBLIC LICENSE Version 3
-[License](License)
+[LICENSE](LICENSE)
