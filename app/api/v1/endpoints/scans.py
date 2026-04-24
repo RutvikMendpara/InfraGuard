@@ -5,7 +5,8 @@ from app.api.deps import get_db
 from app.repositories import scan_repo
 from app.services.scanner_service import run_scan
 from app.schemas.scan import ScanResponse
-
+from app.notifier.notifier import notify
+from app.utils import filter_by_severity
 router = APIRouter()
 
 
@@ -21,6 +22,9 @@ def trigger_scan(db: Session = Depends(get_db)):
     try:
         findings = run_scan(db)
 
+        alert_findings = filter_by_severity(findings)
+        notify(alert_findings)
+
         scan = scan_repo.complete_scan(
             db=db,
             scan=scan,
@@ -30,7 +34,7 @@ def trigger_scan(db: Session = Depends(get_db)):
         return scan
 
     except Exception as e:
-        scan.status = "FAILED" # type: ignore
+        scan.status = "FAILED"  # type: ignore
         db.commit()
         raise HTTPException(status_code=500, detail=str(e))
 
