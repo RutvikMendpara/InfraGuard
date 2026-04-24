@@ -50,25 +50,46 @@ def send_slack(findings):
 
 def send_telegram(findings):
     if not settings.ENABLE_TELEGRAM:
+        logger.info("Telegram disabled")
         return
+
     if not settings.TELEGRAM_BOT_TOKEN or not settings.TELEGRAM_CHAT_ID:
+        logger.error("Telegram config missing")
         return
+
     if not findings:
+        logger.info("No findings to send")
         return
+
+    url = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
+    
+    
+    MAX_LEN = 4000
+    message = format_findings(findings)
+
+    if len(message) > MAX_LEN:
+        message = message[:MAX_LEN] + "\n...truncated"
+
+    logger.info(f"Sending Telegram message:\n{message}")
 
     try:
-        url = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
-
-        requests.post(
+        response = requests.post(
             url,
             data={
                 "chat_id": settings.TELEGRAM_CHAT_ID,
-                "text": format_findings(findings),
+                "text": message
             },
-            timeout=5,
+            timeout=10
         )
+
+        logger.info(f"Telegram status: {response.status_code}")
+        logger.info(f"Telegram response: {response.text}")
+
+        if response.status_code != 200:
+            logger.error("Telegram request failed")
+
     except Exception as e:
-        logger.error(f"Telegram notification failed: {e}")
+        logger.error(f"Telegram exception: {e}")
 
 
 def notify(findings):
