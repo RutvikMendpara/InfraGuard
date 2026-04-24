@@ -1,5 +1,5 @@
 import boto3
-from app.config import AWS_CONFIG
+from app.core.config import settings
 from app.utils import make_finding
 
 
@@ -40,7 +40,7 @@ def check_security_group(sg):
 
 
 def scan(region):
-    ec2 = boto3.client("ec2", region_name=region, config=AWS_CONFIG)
+    ec2 = boto3.client("ec2", region_name=region, config=settings.AWS_CONFIG)
 
     findings = []
     sg_cache = {}

@@ -1,10 +1,11 @@
 import boto3
 import json
 from botocore.exceptions import ClientError
-from app.config import AWS_CONFIG
+from app.core.config import settings
 from app.utils import make_finding
 
-s3 = boto3.client("s3", config=AWS_CONFIG)
+def get_client():
+    return boto3.client("s3", config=settings.AWS_CONFIG)
 
 
 def is_acl_public(acl):
@@ -35,6 +36,8 @@ def is_policy_public(policy_json):
 
 
 def get_public_access_block(bucket):
+    s3 = get_client()
+    
     try:
         block = s3.get_public_access_block(Bucket=bucket)
         config = block["PublicAccessBlockConfiguration"]
@@ -45,6 +48,7 @@ def get_public_access_block(bucket):
 
 
 def scan():
+    s3 = get_client()
     findings = []
 
     buckets = s3.list_buckets().get("Buckets", [])

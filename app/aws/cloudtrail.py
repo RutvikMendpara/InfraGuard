@@ -1,11 +1,13 @@
 import boto3
-from app.config import AWS_CONFIG
+from app.core.config import settings
 from app.utils import make_finding
 
-ct = boto3.client("cloudtrail", config=AWS_CONFIG)
+def get_client():
+    return boto3.client("cloudtrail", config=settings.AWS_CONFIG)
 
 
 def scan():
+    ct = get_client()
     findings = []
 
     trails = ct.describe_trails().get("trailList", [])

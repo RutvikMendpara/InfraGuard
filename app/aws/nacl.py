@@ -1,5 +1,5 @@
 import boto3
-from app.config import AWS_CONFIG
+from app.core.config import settings
 from app.utils import make_finding
 
 
@@ -18,7 +18,7 @@ def get_active_subnets(ec2):
 
 
 def scan(region):
-    ec2 = boto3.client("ec2", region_name=region, config=AWS_CONFIG)
+    ec2 = boto3.client("ec2", region_name=region, config=settings.AWS_CONFIG)
     findings = []
 
     active_subnets = get_active_subnets(ec2)

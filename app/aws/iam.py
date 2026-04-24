@@ -1,9 +1,9 @@
 import boto3
 import json
-from app.config import AWS_CONFIG
+from app.core.config import settings
 from app.utils import make_finding
 
-iam = boto3.client("iam", config=AWS_CONFIG)
+
 
 
 def has_admin_policy(policy_doc):
@@ -27,6 +27,7 @@ def has_admin_policy(policy_doc):
 
 
 def scan():
+    iam = boto3.client("iam", config=settings.AWS_CONFIG)
     findings = []
 
     # users

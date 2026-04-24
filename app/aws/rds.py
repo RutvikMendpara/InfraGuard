@@ -1,12 +1,12 @@
 import boto3
-from app.config import AWS_CONFIG
+from app.core.config import settings
 from app.utils import make_finding
-from app.services.ec2 import check_security_group
+from app.aws.ec2 import check_security_group
 
 
 def scan(region):
-    rds = boto3.client("rds", region_name=region, config=AWS_CONFIG)
-    ec2 = boto3.client("ec2", region_name=region, config=AWS_CONFIG)
+    rds = boto3.client("rds", region_name=region, config=settings.AWS_CONFIG)
+    ec2 = boto3.client("ec2", region_name=region, config=settings.AWS_CONFIG)
 
     findings = []
     sg_cache = {}
