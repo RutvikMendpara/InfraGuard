@@ -19,6 +19,13 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7
+    container_name: infraguard-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
   app:
     build:
       context: ..
@@ -27,13 +34,33 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     ports:
       - "8000:8000"
     env_file:
       - ../.env
     volumes:
       - ../:/app
+      - ../logs:/app/logs
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: infraguard-worker
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    env_file:
+      - ../.env
+    volumes:
+      - ../:/app
+      - ../logs:/app/logs
+    command: python -m app.workers.worker
 
 volumes:
   pgdata:

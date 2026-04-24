@@ -40,5 +40,9 @@ class Settings:
         os.getenv("SCAN_INTERVAL_SECONDS", 21600)
     )
 
+    # -------- REDIS --------
+
+    REDIS_URL : str | None = os.getenv("REDIS_URL")
+
 
 settings = Settings()

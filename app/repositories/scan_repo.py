@@ -26,3 +26,7 @@ def complete_scan(db: Session, scan: ScanRun, total_findings: int):
 
 def get_scans(db: Session):
     return db.query(ScanRun).order_by(ScanRun.started_at.desc()).all()
+
+
+def get_scan_by_id(db: Session, scan_id: str):
+    return db.query(ScanRun).filter(ScanRun.id == scan_id).first()
