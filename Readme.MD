@@ -30,28 +30,18 @@ InfraGuard is an AWS security scanner that detects common infrastructure misconf
 
 ## API
 
-Base URL:
+Base URL:  
+http://localhost:8000/api/v1
 
-```
-
-[http://localhost:8000/api/v1](http://localhost:8000/api/v1)
-
-```
-
-Endpoints:
+### Endpoints
 
 - `GET /health`
 - `POST /scans`
 - `GET /scans`
 - `GET /findings`
 
-Swagger UI:
-
-```
-
-[http://localhost:8000/docs](http://localhost:8000/docs)
-
-```
+Swagger UI:  
+http://localhost:8000/docs
 
 ---
 
@@ -84,7 +74,7 @@ uvicorn app.main:app --reload
 
 ## AWS Setup
 
-Create an IAM user with read-only access and attach:
+Create an IAM user with read-only access and attach the following policies:
 
 - AmazonEC2ReadOnlyAccess
 - AmazonRDSReadOnlyAccess
@@ -102,7 +92,7 @@ Generate access keys and add them to `.env`.
 Update `.env` with:
 
 - AWS credentials
-- DATABASE_URL
+- `DATABASE_URL`
 - Slack / Telegram settings (optional)
 
 ---
