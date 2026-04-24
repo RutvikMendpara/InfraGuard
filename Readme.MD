@@ -2,8 +2,6 @@
 
 InfraGuard is an AWS security scanner that detects common infrastructure misconfigurations and exposes findings via API and alerts.
 
----
-
 ## Features
 
 - Scans AWS across regions
@@ -20,13 +18,9 @@ InfraGuard is an AWS security scanner that detects common infrastructure misconf
 - Slack / Telegram alerts
 - REST API with filtering and pagination
 
----
-
 ## Demo
 
 ![Telegram Alerts](docs/img/telegram.jpeg)
-
----
 
 ## API
 
@@ -43,8 +37,6 @@ http://localhost:8000/api/v1
 Swagger UI:  
 http://localhost:8000/docs
 
----
-
 ## Setup (Docker)
 
 ```bash
@@ -52,8 +44,6 @@ git clone https://github.com/RutvikMendpara/InfraGuard.git
 cd InfraGuard/docker
 docker compose up --build
 ```
-
----
 
 ## Setup (Local)
 
@@ -70,8 +60,6 @@ Run:
 uvicorn app.main:app --reload
 ```
 
----
-
 ## AWS Setup
 
 Create an IAM user with read-only access and attach the following policies:
@@ -85,8 +73,6 @@ Create an IAM user with read-only access and attach the following policies:
 
 Generate access keys and add them to `.env`.
 
----
-
 ## Configuration
 
 Update `.env` with:
@@ -95,8 +81,6 @@ Update `.env` with:
 - `DATABASE_URL`
 - Slack / Telegram settings (optional)
 
----
-
 ## Tech Stack
 
 - FastAPI
@@ -104,8 +88,6 @@ Update `.env` with:
 - SQLAlchemy
 - Docker
 - boto3
-
----
 
 ## License
 
