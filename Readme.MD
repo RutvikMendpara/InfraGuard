@@ -1,13 +1,12 @@
 # InfraGuard
 
-InfraGuard is a AWS security scanner that checks for common misconfigurations and sends alerts via Telegram and Slack.
+InfraGuard is an AWS security scanner that detects common infrastructure misconfigurations and exposes findings via API and alerts.
 
 ---
 
 ## Features
 
 - Scans AWS across regions
-
 - Checks:
   - S3 public access
   - EC2 open ports (SSH/RDP)
@@ -16,12 +15,10 @@ InfraGuard is a AWS security scanner that checks for common misconfigurations an
   - IAM issues (admin roles, MFA)
   - RDS security
   - CloudTrail status
-
-- Severity-based alerts (CRITICAL, HIGH, etc.)
-
-- Telegram / Slack notifications
-
-- Configurable scan interval
+- Stores findings in PostgreSQL
+- Tracks findings lifecycle (OPEN → RESOLVED)
+- Slack / Telegram alerts
+- REST API with filtering and pagination
 
 ---
 
@@ -31,31 +28,63 @@ InfraGuard is a AWS security scanner that checks for common misconfigurations an
 
 ---
 
-## Setup
+## API
 
-### 1. Clone
+Base URL:
 
-```bash
-git clone https://github.com/RutvikMendpara/InfraGuard.git
-cd infraguard
-pip install -r requirements.txt
+```
+
+[http://localhost:8000/api/v1](http://localhost:8000/api/v1)
+
+```
+
+Endpoints:
+
+- `GET /health`
+- `POST /scans`
+- `GET /scans`
+- `GET /findings`
+
+Swagger UI:
+
+```
+
+[http://localhost:8000/docs](http://localhost:8000/docs)
+
 ```
 
 ---
 
-### 2. Configure
+## Setup (Docker)
 
 ```bash
+git clone https://github.com/RutvikMendpara/InfraGuard.git
+cd InfraGuard/docker
+docker compose up --build
+```
+
+---
+
+## Setup (Local)
+
+```bash
+git clone https://github.com/RutvikMendpara/InfraGuard.git
+cd InfraGuard
+pip install -r requirements.txt
 cp .env.example .env
 ```
 
-## Fill in your values in `.env`
+Run:
 
-### 3. AWS setup
+```bash
+uvicorn app.main:app --reload
+```
 
-Create an IAM user with read-only access.
+---
 
-Attach these policies:
+## AWS Setup
+
+Create an IAM user with read-only access and attach:
 
 - AmazonEC2ReadOnlyAccess
 - AmazonRDSReadOnlyAccess
@@ -63,13 +92,28 @@ Attach these policies:
 - AmazonVPCReadOnlyAccess
 - AWSCloudTrail_ReadOnlyAccess
 - IAMReadOnlyAccess
-  Then generate access keys and add them to `.env`.
 
-## Run
+Generate access keys and add them to `.env`.
 
-```bash
-python main.py
-```
+---
+
+## Configuration
+
+Update `.env` with:
+
+- AWS credentials
+- DATABASE_URL
+- Slack / Telegram settings (optional)
+
+---
+
+## Tech Stack
+
+- FastAPI
+- PostgreSQL
+- SQLAlchemy
+- Docker
+- boto3
 
 ---
 
