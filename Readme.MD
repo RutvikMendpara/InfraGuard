@@ -1,6 +1,6 @@
 # InfraGuard
 
-InfraGuard is an AWS security scanner that detects common infrastructure misconfigurations and exposes findings via API and alerts.
+InfraGuard is an AWS security scanning service that detects infrastructure misconfigurations and exposes findings via API and alerts.
 
 ## Features
 
@@ -14,9 +14,19 @@ InfraGuard is an AWS security scanner that detects common infrastructure misconf
   - RDS security
   - CloudTrail status
 - Stores findings in PostgreSQL
-- Tracks findings lifecycle (OPEN → RESOLVED)
+- Tracks lifecycle (OPEN -> RESOLVED)
+- Async scan execution (queue + worker)
+- Scheduled scans (optional)
 - Slack / Telegram alerts
 - REST API with filtering and pagination
+
+## Architecture
+
+```
+
+API (FastAPI) -> Queue (Redis) -> Worker -> AWS Scan -> PostgreSQL -> Alerts
+
+```
 
 ## Demo
 
@@ -30,9 +40,10 @@ http://localhost:8000/api/v1
 ### Endpoints
 
 - `GET /health`
-- `POST /scans`
-- `GET /scans`
-- `GET /findings`
+- `POST /scans` — trigger scan (async)
+- `GET /scans` — list scans
+- `GET /scans/{id}` — scan status
+- `GET /findings` — list findings
 
 Swagger UI:  
 http://localhost:8000/docs
@@ -43,6 +54,7 @@ http://localhost:8000/docs
 git clone https://github.com/RutvikMendpara/InfraGuard.git
 cd InfraGuard/docker
 docker compose up --build
+
 ```
 
 ## Setup (Local)
@@ -52,17 +64,19 @@ git clone https://github.com/RutvikMendpara/InfraGuard.git
 cd InfraGuard
 pip install -r requirements.txt
 cp .env.example .env
+
 ```
 
 Run:
 
 ```bash
 uvicorn app.main:app --reload
+
 ```
 
 ## AWS Setup
 
-Create an IAM user with read-only access and attach the following policies:
+Create an IAM user with read-only access and attach:
 
 - AmazonEC2ReadOnlyAccess
 - AmazonRDSReadOnlyAccess
@@ -79,12 +93,15 @@ Update `.env` with:
 
 - AWS credentials
 - `DATABASE_URL`
-- Slack / Telegram settings (optional)
+- `REDIS_URL`
+- Alert settings (Slack / Telegram)
+- Scheduler config (optional)
 
 ## Tech Stack
 
 - FastAPI
 - PostgreSQL
+- Redis (RQ)
 - SQLAlchemy
 - Docker
 - boto3
