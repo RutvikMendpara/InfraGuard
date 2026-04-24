@@ -1,21 +1,22 @@
 import boto3
-from app.config import AWS_CONFIG
-from app import settings
+
+from app.core.config import settings
 
 
 def get_all_regions():
-    ec2 = boto3.client("ec2", config=AWS_CONFIG)
+    ec2 = boto3.client("ec2", config=settings.AWS_CONFIG)
     regions = ec2.describe_regions()["Regions"]
     return [r["RegionName"] for r in regions]
 
 
-def make_finding(resource, resource_id, region, severity, issue):
+def make_finding(resource_type, resource_id, region, severity, issue):
     return {
-        "resource": resource,
-        "id": resource_id,
+        "resource_type": resource_type,
+        "resource_id": resource_id,
         "region": region,
         "severity": severity,
         "issue": issue,
+        "status": "OPEN",
     }
 
 
