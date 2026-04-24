@@ -40,3 +40,19 @@ def trigger_scan(db: Session = Depends(get_db)):
 )
 def list_scans(db: Session = Depends(get_db)):
     return scan_repo.get_scans(db)
+
+
+
+@router.get(
+    "/{scan_id}",
+    response_model=ScanResponse,
+    summary="Get scan status",
+    description="Fetch status of a specific scan (PENDING, SUCCESS, FAILED)",
+)
+def get_scan(scan_id: str, db: Session = Depends(get_db)):
+    scan = scan_repo.get_scan_by_id(db, scan_id)
+
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found")
+
+    return scan

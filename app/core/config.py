@@ -44,5 +44,7 @@ class Settings:
 
     REDIS_URL : str | None = os.getenv("REDIS_URL")
 
+    ENABLE_SCHEDULER: bool = os.getenv("ENABLE_SCHEDULER", "false").lower() == "true"
+
 
 settings = Settings()
