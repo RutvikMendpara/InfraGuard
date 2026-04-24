@@ -38,7 +38,7 @@ def scan(region):
             if not associated:
                 continue
 
-            seen = set()  # (direction, issue)
+            seen = set()  
 
             for entry in nacl.get("Entries", []):
                 if entry.get("RuleAction") != "allow":

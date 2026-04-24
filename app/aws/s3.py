@@ -43,7 +43,6 @@ def get_public_access_block(bucket):
         config = block["PublicAccessBlockConfiguration"]
         return config
     except ClientError:
-        # If not set, AWS treats it as disabled → potentially risky
         return None
 
 
@@ -114,7 +113,6 @@ def scan():
         # ---- EFFECTIVE PUBLIC  ----
         if (acl_public or policy_public):
             if pab_config and all(pab_config.values()):
-                # Blocked by AWS safeguard
                 findings.append(
                     make_finding(
                         "S3",

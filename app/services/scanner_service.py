@@ -51,7 +51,7 @@ def run_scan(db):
                 logger.error(f"Region failed: {e}")
 
     # --------------------------
-    # DB INTEGRATION (CRITICAL)
+    # DB INTEGRATION 
     # --------------------------
 
     active_hashes = set()
