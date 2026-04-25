@@ -1,52 +1,70 @@
 # InfraGuard
 
-InfraGuard is an AWS security scanning service that detects infrastructure misconfigurations and exposes findings via API and alerts.
+InfraGuard is an AWS security scanner that checks your infrastructure for common misconfigurations and shows results via API and alerts.
 
-## Features
+---
 
-- Scans AWS across regions
+## What it does
+
+- Scans AWS across multiple regions
+
 - Checks:
-  - S3 public access
-  - EC2 open ports (SSH/RDP)
+  - S3 buckets (public access)
+  - EC2 instances (open ports like SSH/RDP)
   - NACL rules
-  - Load balancer exposure
-  - IAM issues (admin roles, MFA)
-  - RDS security
-  - CloudTrail status
+  - Load balancers
+  - IAM users/roles (MFA, admin access)
+  - RDS (public access, encryption, backups)
+  - CloudTrail setup
 - Stores findings in PostgreSQL
-- Tracks lifecycle (OPEN -> RESOLVED)
-- Async scan execution (queue + worker)
-- Scheduled scans (optional)
-- Slack / Telegram alerts
-- REST API with filtering and pagination
+- Tracks findings lifecycle (OPEN -> RESOLVED)
 
-## Architecture
+---
 
-```
+## How it works
 
-API (FastAPI) -> Queue (Redis) -> Worker -> AWS Scan -> PostgreSQL -> Alerts
+- API receives request to start scan
+- Scan is pushed to Redis queue
+- Worker picks it up and runs scan
+- Results are stored in DB
+- Alerts are sent (Telegram / Slack)
 
-```
+---
+
+## System behavior
+
+- Scans run asynchronously (non-blocking API)
+- Uses retry with delay if something fails (like AWS errors)
+- Uses **at-least-once execution** -> scan may run more than once if retry happens
+- Uses **idempotency** -> same finding is not duplicated (based on hash)
+- Uses **concurrency control** -> only one scan runs at a time (to avoid conflicts)
+- Handles crashes -> if worker dies, stuck scans are marked failed
+
+---
+
+## API
+
+Base URL:  
+`http://localhost:8000/api/v1`
+
+Endpoints:
+
+- `GET /health`
+- `POST /scans` -> trigger scan
+- `GET /scans` -> list scans
+- `GET /scans/{id}` -> scan status
+- `GET /findings` -> list findings
+
+Swagger UI:  
+`http://localhost:8000/docs`
+
+---
 
 ## Demo
 
 ![Telegram Alerts](docs/img/telegram.jpeg)
 
-## API
-
-Base URL:  
-http://localhost:8000/api/v1
-
-### Endpoints
-
-- `GET /health`
-- `POST /scans` — trigger scan (async)
-- `GET /scans` — list scans
-- `GET /scans/{id}` — scan status
-- `GET /findings` — list findings
-
-Swagger UI:  
-http://localhost:8000/docs
+---
 
 ## Setup (Docker)
 
@@ -54,8 +72,9 @@ http://localhost:8000/docs
 git clone https://github.com/RutvikMendpara/InfraGuard.git
 cd InfraGuard/docker
 docker compose up --build
-
 ```
+
+---
 
 ## Setup (Local)
 
@@ -64,19 +83,19 @@ git clone https://github.com/RutvikMendpara/InfraGuard.git
 cd InfraGuard
 pip install -r requirements.txt
 cp .env.example .env
-
 ```
 
 Run:
 
 ```bash
 uvicorn app.main:app --reload
-
 ```
+
+---
 
 ## AWS Setup
 
-Create an IAM user with read-only access and attach:
+Create IAM user with read-only access and attach:
 
 - AmazonEC2ReadOnlyAccess
 - AmazonRDSReadOnlyAccess
@@ -85,19 +104,21 @@ Create an IAM user with read-only access and attach:
 - AWSCloudTrail_ReadOnlyAccess
 - IAMReadOnlyAccess
 
-Generate access keys and add them to `.env`.
+Add access keys in `.env`.
 
-## Configuration
+---
 
-Update `.env` with:
+## Config (.env)
 
 - AWS credentials
-- `DATABASE_URL`
-- `REDIS_URL`
-- Alert settings (Slack / Telegram)
-- Scheduler config (optional)
+- DATABASE_URL
+- REDIS_URL
+- Telegram / Slack config
+- Scheduler config
 
-## Tech Stack
+---
+
+## Tech stack
 
 - FastAPI
 - PostgreSQL
@@ -105,6 +126,8 @@ Update `.env` with:
 - SQLAlchemy
 - Docker
 - boto3
+
+---
 
 ## License
 
