@@ -29,3 +29,5 @@ class ScanRun(Base):
     )
 
     total_findings = Column(Integer, default=0)
+
+    retry_count = Column(Integer, default=0)

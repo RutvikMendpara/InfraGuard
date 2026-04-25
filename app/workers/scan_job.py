@@ -4,10 +4,11 @@ from app.repositories import scan_repo
 from app.notifier.notifier import notify
 from app.utils import filter_by_severity
 from app.core.logger import logger
-
+from rq import get_current_job
 
 def run_scan_job(scan_id: str):
     db = SessionLocal()
+    job = get_current_job()
 
     try:
         logger.info(f"Starting async scan job: {scan_id}")
@@ -31,9 +32,22 @@ def run_scan_job(scan_id: str):
 
     except Exception as e:
         logger.error(f"Scan failed: {e}")
+
         scan = scan_repo.get_scan_by_id(db, scan_id)
-        scan.status = "FAILED" # type: ignore
-        db.commit()
+        
+        if scan:
+            if job and job.retries_left is not None:
+                scan.retry_count = (job.meta.get("retry_count", 0) + 1)  # type: ignore
+                job.meta["retry_count"] = scan.retry_count
+                job.save_meta()
+            if job and job.retries_left:
+                scan.status = "RETRYING"  # type: ignore
+            else:
+                scan.status = "FAILED"  # type: ignore
+
+            db.commit()
+
+        raise # RQ can retry
 
     finally:
         db.close()

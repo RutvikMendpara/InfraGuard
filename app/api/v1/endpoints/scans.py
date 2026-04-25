@@ -8,6 +8,8 @@ from app.services.scanner_service import run_scan
 from app.schemas.scan import ScanResponse
 from app.notifier.notifier import notify
 from app.utils import filter_by_severity
+from rq import Retry
+
 router = APIRouter()
 
 
@@ -26,7 +28,8 @@ def trigger_scan(db: Session = Depends(get_db)):
         )
     try:
         scan = scan_repo.create_scan(db)
-        queue.enqueue(run_scan_job, str(scan.id))
+        queue.enqueue(run_scan_job, str(scan.id), retry=Retry(max=3, interval=[30, 60, 120]))  # seconds
+
 
         return scan
 
