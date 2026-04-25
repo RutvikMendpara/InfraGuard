@@ -4,6 +4,8 @@ InfraGuard is an AWS security scanner that checks your infrastructure for common
 
 ---
 
+![Architecture](docs/img/architecture.png)
+
 ## What it does
 
 - Scans AWS across multiple regions
@@ -16,7 +18,9 @@ InfraGuard is an AWS security scanner that checks your infrastructure for common
   - IAM users/roles (MFA, admin access)
   - RDS (public access, encryption, backups)
   - CloudTrail setup
+
 - Stores findings in PostgreSQL
+
 - Tracks findings lifecycle (OPEN -> RESOLVED)
 
 ---
@@ -44,7 +48,7 @@ InfraGuard is an AWS security scanner that checks your infrastructure for common
 
 ## API
 
-Base URL:  
+Base URL:
 `http://localhost:8000/api/v1`
 
 Endpoints:
@@ -55,8 +59,20 @@ Endpoints:
 - `GET /scans/{id}` -> scan status
 - `GET /findings` -> list findings
 
-Swagger UI:  
+Swagger UI:
 `http://localhost:8000/docs`
+
+---
+
+## Documentation
+
+- [Architecture](docs/architecture.md)
+- [API](docs/api.md)
+- [Data Model](docs/data-model.md)
+- [Scanner Engine](docs/scanner.md)
+- [Worker & Queue](docs/worker.md)
+- [Alerts](docs/alerts.md)
+- [Tradeoffs](docs/tradeoffs.md)
 
 ---
 
