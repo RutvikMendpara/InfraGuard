@@ -13,29 +13,33 @@ def get_by_hash(db: Session, hash_value: str):
     return db.query(Finding).filter(Finding.hash == hash_value).first()
 
 
+from sqlalchemy.exc import IntegrityError
+
+
 def create_or_update(db: Session, finding_data: dict):
-    existing = get_by_hash(db, finding_data["hash"])
-
-    if existing:
-        existing.last_seen_at = utc_now() # type: ignore
-        existing.status = "OPEN" # type: ignore
+    try:
+        new_finding = Finding(**finding_data)
+        db.add(new_finding)
         db.commit()
-        return existing
+        db.refresh(new_finding)
+        return new_finding
 
-    new_finding = Finding(**finding_data)
-    db.add(new_finding)
-    db.commit()
-    db.refresh(new_finding)
-    return new_finding
+    except IntegrityError:
+        db.rollback()
+
+        existing = get_by_hash(db, finding_data["hash"])
+
+        if existing:
+            existing.last_seen_at = utc_now() # type: ignore
+            existing.status = "OPEN" # type: ignore
+            db.commit()
+            return existing
+
+        raise
 
 
 def mark_missing_as_resolved(db: Session, active_hashes: set):
-    findings = db.query(Finding).filter(Finding.status == "OPEN").all()
-
-    for f in findings:
-        if f.hash not in active_hashes:
-            f.status = "RESOLVED" # type: ignore
-
+    db.query(Finding).filter(Finding.status == "OPEN", ~Finding.hash.in_(active_hashes)).update({"status": "RESOLVED"},synchronize_session=False)
     db.commit()
 
 

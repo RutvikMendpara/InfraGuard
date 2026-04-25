@@ -12,12 +12,14 @@ def run_scan_job(scan_id: str):
     try:
         logger.info(f"Starting async scan job: {scan_id}")
 
+        scan = scan_repo.get_scan_by_id(db, scan_id)
+        scan.status = "RUNNING" # type: ignore
+        db.commit()
+        
         findings = run_scan(db)
 
         alert_findings = filter_by_severity(findings)
         notify(alert_findings)
-
-        scan = scan_repo.get_scan_by_id(db, scan_id)
 
         scan_repo.complete_scan(
             db=db,

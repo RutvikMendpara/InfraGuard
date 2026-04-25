@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, String, DateTime, Index
+from sqlalchemy import Column, String, DateTime, Index, UniqueConstraint
 
 from app.db.base import Base
 
@@ -40,5 +40,5 @@ class Finding(Base):
     )
 
     __table_args__ = (
-        Index("idx_finding_hash", "hash"),
+         UniqueConstraint("hash", name="uq_finding_hash"),
     )

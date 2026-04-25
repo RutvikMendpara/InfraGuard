@@ -30,3 +30,9 @@ def get_scans(db: Session):
 
 def get_scan_by_id(db: Session, scan_id: str):
     return db.query(ScanRun).filter(ScanRun.id == scan_id).first()
+
+
+def has_active_scan(db: Session):
+    return db.query(ScanRun).filter(
+        ScanRun.status.in_(["PENDING", "RUNNING"])
+    ).first() is not None

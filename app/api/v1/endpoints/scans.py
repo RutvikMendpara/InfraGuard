@@ -19,6 +19,11 @@ router = APIRouter()
     description="Enqueue AWS infra scan and return immediately",
 )
 def trigger_scan(db: Session = Depends(get_db)):
+    if scan_repo.has_active_scan(db):
+        raise HTTPException(
+            status_code=409,
+            detail="A scan is already running"
+        )
     try:
         scan = scan_repo.create_scan(db)
         queue.enqueue(run_scan_job, str(scan.id))
