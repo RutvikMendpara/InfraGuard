@@ -13,7 +13,6 @@ from rq import Retry
 router = APIRouter()
 
 
-
 @router.post(
     "/",
     response_model=ScanResponse,
@@ -21,46 +20,40 @@ router = APIRouter()
     description="Enqueue AWS infra scan and return immediately",
 )
 def trigger_scan(db: Session = Depends(get_db)):
+    scan_repo.cleanup_stale_scans(db)
+
     if scan_repo.has_active_scan(db):
-        raise HTTPException(
-            status_code=409,
-            detail="A scan is already running"
-        )
-    try:
-        scan = scan_repo.create_scan(db)
-        queue.enqueue(run_scan_job, str(scan.id), retry=Retry(max=3, interval=[30, 60, 120]))  # seconds
+        raise HTTPException(409, "A scan is already running")
 
+    scan = scan_repo.create_scan(db)
 
-        return scan
+    queue.enqueue(
+        run_scan_job,
+        str(scan.id),
+        retry=Retry(max=3, interval=[30, 60, 120])
+    )
 
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to trigger scan: {str(e)}"
-        )
+    return scan
     
-    
+
 @router.get(
     "/",
     response_model=list[ScanResponse],
     summary="List scan runs",
-    description="Fetch history of scan executions",
 )
 def list_scans(db: Session = Depends(get_db)):
     return scan_repo.get_scans(db)
-
 
 
 @router.get(
     "/{scan_id}",
     response_model=ScanResponse,
     summary="Get scan status",
-    description="Fetch status of a specific scan (PENDING, SUCCESS, FAILED)",
 )
 def get_scan(scan_id: str, db: Session = Depends(get_db)):
     scan = scan_repo.get_scan_by_id(db, scan_id)
 
     if not scan:
-        raise HTTPException(status_code=404, detail="Scan not found")
+        raise HTTPException(404, "Scan not found")
 
     return scan

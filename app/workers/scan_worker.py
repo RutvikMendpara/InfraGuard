@@ -10,6 +10,9 @@ from app.utils import filter_by_severity
 
 
 def start_worker():
+    """
+    @deprecated 
+    """
     logger.info("Scan worker started")
 
     while True:

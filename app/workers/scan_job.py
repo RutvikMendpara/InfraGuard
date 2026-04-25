@@ -1,30 +1,34 @@
+from rq import get_current_job
+
 from app.db.session import SessionLocal
-from app.services.scanner_service import run_scan
 from app.repositories import scan_repo
+from app.services.scanner_service import run_scan
 from app.notifier.notifier import notify
 from app.utils import filter_by_severity
 from app.core.logger import logger
-from rq import get_current_job
+
 
 def run_scan_job(scan_id: str):
     db = SessionLocal()
     job = get_current_job()
 
     try:
-        logger.info(f"Starting async scan job: {scan_id}")
+        logger.info(f"Starting scan job: {scan_id}")
 
         scan = scan_repo.get_scan_by_id(db, scan_id)
-        scan.status = "RUNNING" # type: ignore
-        db.commit()
-        
+        if not scan:
+            logger.error("Scan not found")
+            return
+
+        scan_repo.start_scan(db, scan)
+
         findings = run_scan(db)
 
-        alert_findings = filter_by_severity(findings)
-        notify(alert_findings)
+        notify(filter_by_severity(findings))
 
         scan_repo.complete_scan(
             db=db,
-            scan=scan, # type: ignore
+            scan=scan,
             total_findings=len(findings),
         )
 
@@ -34,20 +38,17 @@ def run_scan_job(scan_id: str):
         logger.error(f"Scan failed: {e}")
 
         scan = scan_repo.get_scan_by_id(db, scan_id)
-        
+
         if scan:
-            if job and job.retries_left is not None:
-                scan.retry_count = (job.meta.get("retry_count", 0) + 1)  # type: ignore
-                job.meta["retry_count"] = scan.retry_count
-                job.save_meta()
             if job and job.retries_left:
-                scan.status = "RETRYING"  # type: ignore
+                scan_repo.increment_retry(db, scan)
+                scan.status = "RETRYING" # type: ignore
             else:
-                scan.status = "FAILED"  # type: ignore
+                scan_repo.fail_scan(db, scan)
 
             db.commit()
 
-        raise # RQ can retry
+        raise  # required for retry
 
     finally:
         db.close()
